@@ -1,5 +1,5 @@
 import flet as ft
-
+import json
 
 def main(page: ft.Page):
     buttonstyle = ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10))
@@ -19,6 +19,25 @@ def main(page: ft.Page):
     def settingsClicked(e):
         page.open(settings)
         page.update()
+
+    def findClicked(e):
+        listview = ft.ListView(expand=1, spacing=10, padding=20)
+        with open("sl.json", "r", encoding='utf-8') as sl:
+            streams = json.load(sl)
+            print(1)
+        for i in streams:
+            #if txtfld.content.value in i['name']:
+            station = ft.ListTile(leading = ft.Icon(ft.icons.ALBUM), title=ft.Text(f"{i['name']}"), trailing=ft.IconButton(icon=ft.icons.PLAY_CIRCLE_FILL_OUTLINED, data=i["url"], on_click=playClicked))
+            listview.controls.append(station)
+        page.add(listview)
+
+    def playClicked(e):
+        banner = ft.Container(content=ft.Banner(leading=ft.Icon(ft.icons.AUDIOTRACK, color=ft.colors.GREEN_400, size=40), content=ft.Text(value="Station is loaded! Now press play button!"), actions=[ft.TextButton(text="Okay", style=buttonstyle, on_click=lambda _: page.close(banner.content))]), margin=16)
+        global audio
+        audio = ft.Audio(src=e.control.data, on_loaded=lambda _: page.open(banner.content))
+        page.add(audio)
+        audio.release()
+        audio.play()
 
     def dropdownChanged(e):
         if settings.content.value == "Comfort Blue":
@@ -42,13 +61,13 @@ def main(page: ft.Page):
     )
 
     txtfld = ft.Container(
-        content = ft.TextField(label="Frequency", hint_text="87,5 - 108 MHz"),
+        content = ft.TextField(label="Station name", hint_text="Enter station name"),
         margin = 16,
         alignment = ft.alignment.center
     )
 
-    button = ft.Container(
-        content = ft.FilledButton(text="Find", style=buttonstyle),
+    findbutton = ft.Container(
+        content = ft.FilledButton(text="Find", style=buttonstyle, on_click=findClicked),
         margin = 16,
         alignment = ft.alignment.center
     )
@@ -56,7 +75,7 @@ def main(page: ft.Page):
     content = ft.Column([
     label,
     txtfld,
-    button
+    ft.Row([findbutton, ft.ElevatedButton("Play", on_click=lambda _: audio.play())])
     ])
 
     init()
